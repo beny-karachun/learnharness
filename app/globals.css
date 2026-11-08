@@ -333,6 +333,16 @@ body {
 .lh-prose code {
 	unicode-bidi: isolate;
 }
+/* Hebrew edition: an EMPTY auto-direction field has no letters to decide
+   its direction from, and the browser then falls back to left-to-right —
+   the placeholder and caret sat on the left in the Hebrew UI. While empty,
+   such a field follows the page direction instead; once the user types,
+   dir="auto" decides from the text again. */
+[dir="auto"]:placeholder-shown,
+[dir="auto"][data-empty="true"] {
+	direction: inherit;
+}
+
 /* Per-paragraph direction from the paragraph's own text (Hebrew → RTL,
    English → LTR), with no DOM wrappers. Math and inline code are isolates
    (above), and the bidi algorithm skips isolates when it looks for the

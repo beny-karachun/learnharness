@@ -12,11 +12,11 @@ import { DictationBar, joinDictation, useDictation } from "@/components/dictatio
 import { useFieldCycle } from "@/components/field-cycle";
 import { SidebarToggle } from "@/components/sidebar";
 import { StatsBar } from "@/components/stats-bar";
-import { OPENING_PROMPT_FAILURE } from "@/components/opening-prompt";
 import { PathInput } from "@/components/path-input";
 import { AttachFilesButton } from "@/components/attach-files-button";
 import { SessionStarter } from "@/components/start-session";
 import type { TurnUsage } from "@/src/core";
+import { useT } from "@/components/i18n";
 
 /**
  * Home — the knowledge graph is the main view, full-bleed edge to edge
@@ -34,6 +34,7 @@ export function Home({
 	 * changing the setting applies on the next visit home. */
 	rendering?: boolean;
 }) {
+	const t = useT();
 	const router = useRouter();
 	const [topic, setTopic] = useState("");
 	/* The topic MIRROR ("nothing gets lost" round, 2026-10-01 — same
@@ -200,7 +201,7 @@ export function Home({
 			    no app-region of its own: the strip's drag comes from the mask
 			    div above, and the toggle's lh-no-drag subtracts from it (it is
 			    later in the tree, so the subtraction sticks). */}
-			<header className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-2">
+			<header className="lh-wco-gutter pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-2">
 				<div className="pointer-events-auto">
 					<SidebarToggle />
 				</div>
@@ -237,12 +238,12 @@ export function Home({
 									onClick={() => setSetupOpen(true)}
 									className="rounded-sm border border-border bg-card px-3 py-1.5 font-ui text-xs text-foreground transition-colors hover:border-muted-foreground/50 hover:bg-accent cursor-pointer"
 								>
-									Set up your models
+									{t("graph.home.setUpModels")}
 								</button>
 							)
 						)}
 					/>
-					{startError && <p role="alert" className="mb-2 text-sm text-destructive">{OPENING_PROMPT_FAILURE}</p>}
+					{startError && <p role="alert" className="mb-2 text-sm text-destructive">{t("session.openingFailure")}</p>}
 					<form
 						data-attachment-composer=""
 						className="flex items-end gap-1.5 rounded-2xl border bg-card p-1.5 shadow-lg"
@@ -274,7 +275,7 @@ export function Home({
 								void start();
 							}
 						}}
-						placeholder={mode === "practice" ? "What do you want to practice?" : "What do you want to learn?"}
+						placeholder={mode === "practice" ? t("graph.home.placeholderPractice") : t("graph.home.placeholderLearn")}
 						autoFocus
 						className="field-sizing-content lh-input max-h-48 min-h-10 flex-1 resize-none bg-transparent px-2.5 py-2 outline-none placeholder:text-muted-foreground"
 					/>
@@ -283,11 +284,11 @@ export function Home({
 					    affordance (owner, subtlety round 2026-09-25). */}
 					<button
 						type="submit"
-						aria-label="Start session"
+						aria-label={t("graph.home.startSession")}
 						disabled={(!topic.trim() && !dictation.active) || busy}
 						className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-primary text-primary-foreground transition-colors hover:opacity-90 disabled:opacity-40"
 					>
-						<CornerDownLeftIcon className="size-5" />
+						<CornerDownLeftIcon className="size-5 rtl:-scale-x-100" />
 					</button>
 					</form>
 					{/* Same as the chat view's under-composer stats bar (owner) — no
@@ -313,7 +314,7 @@ export function Home({
 										}
 									>
 										{m === "practice" ? <DumbbellIcon aria-hidden="true" className="size-3" /> : null}
-										{m === "teach" ? "Teach" : "Practice"}
+										{m === "teach" ? t("graph.home.modeTeach") : t("graph.home.modePractice")}
 									</button>
 								))}
 							</div>

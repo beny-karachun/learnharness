@@ -4,9 +4,13 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type ChangeEv
 import { WaypointsIcon } from "lucide-react";
 import { Hint } from "@/components/ui/hint";
 import { createNotesImportQueue, EMPTY_IMPORT_QUEUE, notesPath } from "./notes-import-queue";
+import { useT, type Translate } from "@/components/i18n";
+import { makeT } from "@/components/i18n/translate";
 
 export { MAX_IMPORT_BYTES } from "@/lib/notes-import-limits.ts";
 export { notesPath } from "./notes-import-queue";
+
+const englishT = makeT("en");
 
 // Transport-only types: never import the server's extraction/agent module here.
 export interface NotesImportResult {
@@ -25,8 +29,8 @@ export interface NotesImportResult {
 
 /** Contributor's strict attribution: validate the complete response before
  * applying any row, even when several files have identical basenames. */
-export function parseNotesImportResults(body: unknown, files: readonly File[]): NotesImportResult[] {
-	const invalid = () => new Error("Invalid import response. Check the graph before retrying.");
+export function parseNotesImportResults(body: unknown, files: readonly File[], t: Translate = englishT): NotesImportResult[] {
+	const invalid = () => new Error(t("graph.import.invalidResponse"));
 	if (!body || typeof body !== "object" || !("results" in body) || !Array.isArray(body.results) || body.results.length !== files.length) throw invalid();
 	const seen = new Set<number>();
 	for (const raw of body.results) {
@@ -44,7 +48,7 @@ export function parseNotesImportResults(body: unknown, files: readonly File[]): 
 	return body.results as NotesImportResult[];
 }
 
-export async function postNotesImport(files: readonly File[]): Promise<NotesImportResult[]> {
+export async function postNotesImport(files: readonly File[], t: Translate = englishT): Promise<NotesImportResult[]> {
 	const form = new FormData();
 	for (const file of files) {
 		form.append("files", file);
@@ -53,18 +57,23 @@ export async function postNotesImport(files: readonly File[]): Promise<NotesImpo
 	const response = await fetch("/api/graph/import", { method: "POST", body: form });
 	let body: unknown;
 	try { body = await response.json(); }
-	catch { throw new Error("Invalid import response. Check the graph before retrying."); }
+	catch { throw new Error(t("graph.import.invalidResponse")); }
 	if (!response.ok) {
 		const detail = body && typeof body === "object" && "error" in body && typeof body.error === "string" ? `: ${body.error}` : "";
-		throw new Error(`Import request failed (HTTP ${response.status})${detail}${/[.!?]$/.test(detail) ? "" : "."} Check the graph before retrying.`);
+		throw new Error(t("graph.import.requestFailed", { status: String(response.status), detail, period: /[.!?]$/.test(detail) ? "" : "." }));
 	}
-	return parseNotesImportResults(body, files);
+	return parseNotesImportResults(body, files, t);
 }
 
 // Client module singleton: shared by both home views and successive selections.
 // SSR never appends Files, and uses the immutable empty server snapshot.
-const pageImportQueue = createNotesImportQueue(postNotesImport);
+// The page's translator rides a mutable holder (useNotesImport keeps it
+// current), so failure lines are written in the UI language.
+const pageLocale: { t: Translate } = { t: englishT };
+const pageImportQueue = createNotesImportQueue((files) => postNotesImport(files, pageLocale.t), () => pageLocale.t);
 export function useNotesImport(callbacks: { onStart?: () => void; onFinish?: () => void } = {}) {
+	const t = useT();
+	useEffect(() => { pageLocale.t = t; }, [t]);
 	const snapshot = useSyncExternalStore(pageImportQueue.subscribe, pageImportQueue.getSnapshot, () => EMPTY_IMPORT_QUEUE);
 	const latest = useRef(callbacks);
 	latest.current = callbacks;
@@ -90,30 +99,31 @@ export function useNotesImport(callbacks: { onStart?: () => void; onFinish?: () 
 export function NotesImportControl({ importing, onImportFiles }: { importing: boolean; onImportFiles: (files: FileList | null) => void }) {
 	const filesRef = useRef<HTMLInputElement>(null);
 	const folderRef = useRef<HTMLInputElement>(null);
+	const t = useT();
 	const [open, setOpen] = useState(false);
 	const hintId = useId();
 	const onChange = (event: ChangeEvent<HTMLInputElement>) => {
 		onImportFiles(event.target.files);
 		event.target.value = "";
 	};
-	const choices = [["Files", filesRef], ["Folder", folderRef]] as const;
+	const choices = [["graph.import.files", filesRef], ["graph.import.folder", folderRef]] as const;
 	return (
 		<div className="relative shrink-0 rounded-xl border bg-card/85 px-1 py-[3px] shadow-lg backdrop-blur"
 			onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}
 			onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
 			<input ref={filesRef} type="file" multiple accept=".md,.markdown,.txt,.pdf" className="hidden" onChange={onChange} />
 			<input ref={folderRef} type="file" {...{ webkitdirectory: "" }} className="hidden" onChange={onChange} />
-			<Hint label="Extract files into the graph" side="bottom">
+			<Hint label={t("graph.import.hint")} side="bottom">
 				<button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="menu" data-testid="import-notes"
 					className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent">
-					<WaypointsIcon className="size-3" />{importing ? "Extracting…" : "Extract files…"}
+					<WaypointsIcon className="size-3" />{importing ? t("graph.import.extracting") : t("graph.import.button")}
 				</button>
 			</Hint>
 			{open && (
-				<div role="menu" aria-label="Extract files into the graph" aria-describedby={hintId} className="absolute right-0 top-full z-50 mt-1 w-52 rounded-lg border bg-card p-1 shadow-lg">
-					<div role="none"><p id={hintId} className="px-2 py-1.5 text-xs leading-relaxed text-muted-foreground">For lessons, attach material to a session instead.</p></div>
-					{choices.map(([label, input]) => <button key={label} type="button" role="menuitem" className="block w-full rounded px-2 py-1 text-left text-xs hover:bg-accent"
-						onClick={() => { setOpen(false); input.current?.click(); }}>{label}</button>)}
+				<div role="menu" aria-label={t("graph.import.hint")} aria-describedby={hintId} className="absolute end-0 top-full z-50 mt-1 w-52 rounded-lg border bg-card p-1 shadow-lg">
+					<div role="none"><p id={hintId} className="px-2 py-1.5 text-xs leading-relaxed text-muted-foreground">{t("graph.import.lessonsHint")}</p></div>
+					{choices.map(([label, input]) => <button key={label} type="button" role="menuitem" className="block w-full rounded px-2 py-1 text-start text-xs hover:bg-accent"
+						onClick={() => { setOpen(false); input.current?.click(); }}>{t(label)}</button>)}
 				</div>
 			)}
 		</div>

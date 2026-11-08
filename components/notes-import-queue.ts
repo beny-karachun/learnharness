@@ -1,5 +1,6 @@
 import { IMPORT_EXTENSIONS, MAX_IMPORT_BYTES, validNotesPath } from "@/lib/notes-import-limits";
 import type { NotesImportResult } from "./notes-import";
+import { makeT, type Translate } from "@/components/i18n/translate";
 
 export const notesPath = (file: File): string => file.webkitRelativePath || file.name;
 /** Folder imports silently exclude dot-prefixed files and directories below
@@ -13,10 +14,14 @@ export interface ImportQueueSnapshot {
 }
 export const EMPTY_IMPORT_QUEUE: ImportQueueSnapshot = { importing: false, errors: [], notices: [], completion: 0 };
 
+const englishT = makeT("en");
+
 /** PR198's refill-on-completion, one-request-per-file transport, extended to
  * accept later selections. One instance per page, NOT three workers per click.
- * Only pending/in-flight Files are retained; no retry or persisted upload queue. */
-export function createNotesImportQueue(post: (files: readonly File[]) => Promise<NotesImportResult[]>) {
+ * Only pending/in-flight Files are retained; no retry or persisted upload queue.
+ * `getT` reads the page's current translator when a client-side failure line
+ * is written (the queue outlives any one render). */
+export function createNotesImportQueue(post: (files: readonly File[]) => Promise<NotesImportResult[]>, getT: () => Translate = () => englishT) {
 	const listeners = new Set<() => void>();
 	const pending: { file: File; index: number }[] = [];
 	const failures = new Map<number, string>();
@@ -37,7 +42,7 @@ export function createNotesImportQueue(post: (files: readonly File[]) => Promise
 			void (async () => {
 				try {
 					const [r] = await send(file);
-					if (!r) throw new Error("Invalid import response. Check the graph before retrying.");
+					if (!r) throw new Error(getT()("graph.import.invalidResponse"));
 					if (!r.ok) {
 						const details = [r.provider, r.missing?.join(", "), r.slots?.join(", ")].filter(Boolean);
 						failures.set(index, `${r.filePath}: ${r.error}${r.code ? `\n${[r.code, ...details].join(" — ")}` : ""}`);
@@ -63,8 +68,8 @@ export function createNotesImportQueue(post: (files: readonly File[]) => Promise
 				const index = sequence++;
 				const path = notesPath(file);
 				if (file.webkitRelativePath && hiddenInFolder(file)) continue;
-				if (!IMPORT_EXTENSIONS.test(path) || !validNotesPath(path, file.name)) failures.set(index, `${path}: Unsupported format or unsafe relative path.`);
-				else if (file.size > MAX_IMPORT_BYTES) failures.set(index, `${path}: Too big. Max 25 MB.`);
+				if (!IMPORT_EXTENSIONS.test(path) || !validNotesPath(path, file.name)) failures.set(index, `${path}: ${getT()("graph.import.unsupported")}`);
+				else if (file.size > MAX_IMPORT_BYTES) failures.set(index, `${path}: ${getT()("graph.import.tooBig")}`);
 				else pending.push({ file, index });
 			}
 			const hadWork = active > 0 || pending.length > 0;

@@ -106,6 +106,11 @@ export function SettingsMenuTrigger({
 }
 
 /** The on/off switch — a plain button in the switch role. */
+/** The switch's derived test id (from its ENGLISH label). */
+export function toggleTestId(label: string): string {
+	return `toggle-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
 export function Toggle({
 	checked,
 	disabled,
@@ -113,6 +118,7 @@ export function Toggle({
 	label,
 	discIcon,
 	title,
+	testid,
 }: {
 	checked: boolean;
 	disabled?: boolean;
@@ -125,6 +131,9 @@ export function Toggle({
 	discIcon?: ReactNode;
 	/** Optional native tooltip on the switch. */
 	title?: string;
+	/** Hebrew edition: an explicit testid for callers whose `label` is
+	 *  translated (the derived one would follow the language). */
+	testid?: string;
 }) {
 	return (
 		<button
@@ -134,7 +143,7 @@ export function Toggle({
 			aria-label={label}
 			{...(title ? { title } : {})}
 			disabled={disabled}
-			data-testid={`toggle-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+			data-testid={testid ?? toggleTestId(label)}
 			onClick={() => onChange(!checked)}
 			className={cn(
 				"relative h-4.5 w-8 shrink-0 rounded-full border border-border transition-colors",
@@ -149,8 +158,8 @@ export function Toggle({
 				// only the knob's face changes (the invert affordance).
 				<span
 					className={cn(
-						"absolute left-0 top-0.5 flex size-3 items-center justify-center rounded-full transition-transform",
-						checked ? "translate-x-4 text-foreground" : "translate-x-0.5 text-muted-foreground",
+						"absolute start-0 top-0.5 flex size-3 items-center justify-center rounded-full transition-transform",
+						checked ? "translate-x-4 rtl:-translate-x-4 text-foreground" : "translate-x-0.5 rtl:-translate-x-0.5 text-muted-foreground",
 					)}
 				>
 					{discIcon}
@@ -158,10 +167,10 @@ export function Toggle({
 			) : (
 				<span
 					className={cn(
-						"absolute left-0 top-0.5 size-3 rounded-full transition-transform",
+						"absolute start-0 top-0.5 size-3 rounded-full transition-transform",
 						// 2px inset from each inner edge, both states (owner round: the on
 						// disc used to touch the pill's right edge).
-						checked ? "translate-x-4 bg-foreground" : "translate-x-0.5 bg-muted-foreground",
+						checked ? "translate-x-4 rtl:-translate-x-4 bg-foreground" : "translate-x-0.5 rtl:-translate-x-0.5 bg-muted-foreground",
 					)}
 				/>
 			)}
@@ -211,6 +220,7 @@ export function CommitInput({
 	ariaLabel,
 	testid,
 	type = "text",
+	dir,
 }: {
 	/** "" = unset (the factory default). Mirrors the STORED record —
 	 *  after a clamped/normalized commit this flows back and the field
@@ -222,6 +232,8 @@ export function CommitInput({
 	ariaLabel: string;
 	testid?: string;
 	type?: "text" | "number";
+	/** "ltr" for hex colors / numbers; "auto" for free text. */
+	dir?: "ltr" | "rtl" | "auto";
 }) {
 	// The draft exists only while editing; a blur shows the record's value
 	// again — commit-on-blur/Enter (owner ruling), the field honest about
@@ -235,6 +247,7 @@ export function CommitInput({
 			placeholder={placeholder}
 			aria-label={ariaLabel}
 			data-testid={testid}
+			dir={dir}
 			onChange={(e) => {
 				setEditing(true);
 				setDraft(e.target.value);

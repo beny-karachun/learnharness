@@ -7,6 +7,7 @@ import { ArrowDownIcon, DownloadIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+import { useT } from "@/components/i18n";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 
@@ -42,12 +43,16 @@ export type ConversationEmptyStateProps = ComponentProps<"div"> & {
 
 export const ConversationEmptyState = ({
   className,
-  title = "No messages yet",
-  description = "Start a conversation to see messages here",
+  title,
+  description,
   icon,
   children,
   ...props
-}: ConversationEmptyStateProps) => (
+}: ConversationEmptyStateProps) => {
+  const t = useT();
+  title ??= t("session.conversation.emptyTitle");
+  description ??= t("session.conversation.emptyDescription");
+  return (
   <div
     className={cn(
       "flex size-full flex-col items-center justify-center gap-3 p-8 text-center",
@@ -67,7 +72,8 @@ export const ConversationEmptyState = ({
       </>
     )}
   </div>
-);
+  );
+};
 
 export type ConversationScrollButtonProps = ComponentProps<typeof Button>;
 
@@ -153,7 +159,7 @@ export const ConversationDownload = ({
   return (
     <Button
       className={cn(
-        "absolute top-4 right-4 rounded-full dark:bg-background dark:hover:bg-muted",
+        "absolute top-4 end-4 rounded-full dark:bg-background dark:hover:bg-muted",
         className
       )}
       onClick={handleDownload}

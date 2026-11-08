@@ -32,7 +32,9 @@ import remarkBreaks from "remark-breaks";
 import {
   Streamdown,
   type PluginConfig,
+  type StreamdownTranslations,
 } from "streamdown";
+import { useT } from "@/components/i18n";
 import { mdComponents } from "@/components/md-blocks";
 import { repairMathForDisplay, transformMathDelimiters } from "@/src/core";
 
@@ -44,7 +46,7 @@ export const Message = ({ className, from, ...props }: MessageProps) => (
   <div
     className={cn(
       "group flex w-full max-w-[95%] flex-col gap-2",
-      from === "user" ? "is-user ml-auto justify-end" : "is-assistant",
+      from === "user" ? "is-user ms-auto justify-end" : "is-assistant",
       className
     )}
     {...props}
@@ -61,7 +63,7 @@ export const MessageContent = ({
   <div
     className={cn(
       "is-user:dark flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
-      "group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
+      "group-[.is-user]:ms-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
       "group-[.is-assistant]:text-foreground",
       className
     )}
@@ -249,7 +251,7 @@ export const MessageBranchSelector = ({
   return (
     <ButtonGroup
       className={cn(
-        "[&>*:not(:first-child)]:rounded-l-md [&>*:not(:last-child)]:rounded-r-md",
+        "[&>*:not(:first-child)]:rounded-s-md [&>*:not(:last-child)]:rounded-e-md",
         className
       )}
       orientation="horizontal"
@@ -264,11 +266,12 @@ export const MessageBranchPrevious = ({
   children,
   ...props
 }: MessageBranchPreviousProps) => {
+  const t = useT();
   const { goToPrevious, totalBranches } = useMessageBranch();
 
   return (
     <Button
-      aria-label="Previous branch"
+      aria-label={t("session.message.previousBranch")}
       disabled={totalBranches <= 1}
       onClick={goToPrevious}
       size="icon-sm"
@@ -276,7 +279,7 @@ export const MessageBranchPrevious = ({
       variant="ghost"
       {...props}
     >
-      {children ?? <ChevronLeftIcon size={14} />}
+      {children ?? <ChevronLeftIcon size={14} className="rtl:-scale-x-100" />}
     </Button>
   );
 };
@@ -287,11 +290,12 @@ export const MessageBranchNext = ({
   children,
   ...props
 }: MessageBranchNextProps) => {
+  const t = useT();
   const { goToNext, totalBranches } = useMessageBranch();
 
   return (
     <Button
-      aria-label="Next branch"
+      aria-label={t("session.message.nextBranch")}
       disabled={totalBranches <= 1}
       onClick={goToNext}
       size="icon-sm"
@@ -299,7 +303,7 @@ export const MessageBranchNext = ({
       variant="ghost"
       {...props}
     >
-      {children ?? <ChevronRightIcon size={14} />}
+      {children ?? <ChevronRightIcon size={14} className="rtl:-scale-x-100" />}
     </Button>
   );
 };
@@ -310,6 +314,7 @@ export const MessageBranchPage = ({
   className,
   ...props
 }: MessageBranchPageProps) => {
+  const t = useT();
   const { currentBranch, totalBranches } = useMessageBranch();
 
   return (
@@ -320,7 +325,7 @@ export const MessageBranchPage = ({
       )}
       {...props}
     >
-      {currentBranch + 1} of {totalBranches}
+      {t("session.message.branchPage", { current: currentBranch + 1, total: totalBranches })}
     </ButtonGroupText>
   );
 };
@@ -361,8 +366,50 @@ export const streamdownPlugins = {
 // separate sanitization/hardening and all other Markdown repairs stay enabled.
 export const streamdownRemend = { htmlTags: false };
 
+/** Streamdown's own UI strings in Hebrew (Hebrew edition). English passes
+ *  nothing, so Streamdown keeps its built-in defaults byte-for-byte. */
+export const STREAMDOWN_HE: StreamdownTranslations = {
+  close: "סגירה",
+  copied: "הועתק",
+  copyCode: "העתקת קוד",
+  copyLink: "העתקת קישור",
+  copyTable: "העתקת טבלה",
+  copyTableAsCsv: "העתקת הטבלה כ-CSV",
+  copyTableAsMarkdown: "העתקת הטבלה כ-Markdown",
+  copyTableAsTsv: "העתקת הטבלה כ-TSV",
+  downloadDiagram: "הורדת התרשים",
+  downloadDiagramAsMmd: "הורדת התרשים כ-MMD",
+  downloadDiagramAsPng: "הורדת התרשים כ-PNG",
+  downloadDiagramAsSvg: "הורדת התרשים כ-SVG",
+  downloadFile: "הורדת הקובץ",
+  downloadImage: "הורדת התמונה",
+  downloadTable: "הורדת הטבלה",
+  downloadTableAsCsv: "הורדת הטבלה כ-CSV",
+  downloadTableAsMarkdown: "הורדת הטבלה כ-Markdown",
+  exitFullscreen: "יציאה ממסך מלא",
+  externalLinkWarning: "אתם עומדים לעבור לאתר חיצוני.",
+  imageNotAvailable: "התמונה אינה זמינה",
+  mermaidFormatMmd: "MMD",
+  mermaidFormatPng: "PNG",
+  mermaidFormatSvg: "SVG",
+  openExternalLink: "לפתוח קישור חיצוני?",
+  openLink: "פתיחת הקישור",
+  tableFormatCsv: "CSV",
+  tableFormatMarkdown: "Markdown",
+  tableFormatTsv: "TSV",
+  viewFullscreen: "תצוגה במסך מלא",
+};
+
+/** The Streamdown `translations` prop for the current locale: Hebrew in
+ *  Hebrew mode, nothing at all in English (output stays identical). */
+export function useStreamdownTranslations(): { translations?: StreamdownTranslations } {
+  const t = useT();
+  return t.locale === "he" ? { translations: STREAMDOWN_HE } : {};
+}
+
 export const MessageResponse = memo(
   ({ className, children, ...props }: MessageResponseProps) => {
+    const streamdownTranslations = useStreamdownTranslations();
     // Legacy backslash delimiters are converted in a single linear scan;
     // native dollar math passes through to Streamdown unchanged. Incomplete
     // legacy spans are left for a later render when their closer arrives.
@@ -382,6 +429,7 @@ export const MessageResponse = memo(
         components={mdComponents}
         plugins={streamdownPlugins}
         remend={streamdownRemend}
+        {...streamdownTranslations}
         {...props}
       >
         {content}

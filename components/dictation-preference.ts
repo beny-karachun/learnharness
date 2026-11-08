@@ -6,6 +6,30 @@ import {
 	type DictationLanguage, type UserSettings,
 } from "@/src/core";
 import { notifySettingsSaved, onSettingsSaved } from "@/components/settings-signal";
+import type { MessageKey, Translate } from "@/components/i18n";
+
+/** Hebrew edition: dictation's client-authored error lines stay English in
+ *  state (the keyless check and the pins compare them); the surfaces that
+ *  SHOW an error translate it here. Anything unrecognized (a server or
+ *  browser message) is shown verbatim. */
+const DICTATION_ERROR_KEYS: Record<string, MessageKey> = {
+	"Dictation needs a Deepgram key": "shell.dictation.error.keyless",
+	"Deepgram reconnect failed": "shell.dictation.error.reconnect",
+	"Dictation language unavailable": "shell.dictation.error.language",
+	"Microphone permission denied": "shell.dictation.error.micDenied",
+	"mic unavailable": "shell.dictation.error.micUnavailable",
+	"token unavailable": "shell.dictation.error.token",
+	"Could not load dictation language. Try again.": "shell.dictation.error.loadLanguage",
+	"Could not save dictation language. Try again.": "shell.dictation.error.saveLanguage",
+};
+
+export function dictationErrorText(error: string, t: Translate): string {
+	const key = DICTATION_ERROR_KEYS[error];
+	if (key) return t(key);
+	const lost = /^Deepgram connection lost \((\d+)\)$/.exec(error);
+	if (lost) return t("shell.dictation.error.lost", { code: lost[1]! });
+	return error;
+}
 
 const INITIAL = { language: undefined as DictationLanguage | undefined, saving: false, error: null as string | null };
 

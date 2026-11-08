@@ -12,8 +12,8 @@ import { useModelSetup, selectedModelUnavailable, openModelPicker, ZeroKeysPill 
 import { StatsBar } from "@/components/stats-bar";
 import { ChainTableOverlay } from "@/components/chain-table.tsx";
 import { ComposerActions, NodePickerControl } from "@/components/composer-actions";
-import { OPENING_PROMPT_FAILURE } from "@/components/opening-prompt";
 import { SessionStarter } from "@/components/start-session";
+import { useT } from "@/components/i18n";
 import type { ChatSettings, GraphSnapshot } from "@/src/core";
 
 /** The draft's pick set (owner round 10): the SAME shape the home pick
@@ -108,6 +108,7 @@ export function DraftShell({
 	 *  Passed as a node so the pick state stays in NewSession. */
 	overlay?: ReactNode;
 }) {
+	const t = useT();
 	// Voice dictation (STT wave, 2026-09-17): finals append at the end of the
 	// draft text (via the parent's onChange — the truth lives there); the
 	// strip lives in the stats bar's middle slot.
@@ -118,7 +119,7 @@ export function DraftShell({
 		[]);
 	useFieldCycle(cycleComposer);
 	const dictation = useDictation({
-		append: (t) => onChange(joinDictation(text, t)),
+		append: (spoken) => onChange(joinDictation(text, spoken)),
 	});
 	// A LIVE dictation keeps the composer sendable ("nothing gets lost"
 	// round, owner 2026-10-01): the spoken text is deferred in the run's
@@ -170,11 +171,11 @@ export function DraftShell({
 						<Conversation className="h-full min-w-0 flex-1" initial="instant">
 							<ConversationContent className="min-h-full gap-0 p-0">
 								<ConversationEmptyState
-									title={mode === "practice" ? "New practice session" : "New session"}
+									title={mode === "practice" ? t("session.new.practiceTitle") : t("session.new.title")}
 									description={
 										mode === "practice"
-											? "Pick nodes from your knowledge graph, describe what you want to practice, or bring your own problem."
-											: "The teacher will open by probing what you already know."
+											? t("session.new.practiceDescription")
+											: t("session.new.description")
 									}
 								/>
 							</ConversationContent>
@@ -188,7 +189,7 @@ export function DraftShell({
 									)}
 									setup={setupCta}
 								/>
-								{startError && <p role="alert" className="pointer-events-auto mb-2 text-sm text-destructive">{OPENING_PROMPT_FAILURE}</p>}
+								{startError && <p role="alert" className="pointer-events-auto mb-2 text-sm text-destructive">{t("session.openingFailure")}</p>}
 								<div data-attachment-composer="" className="pointer-events-auto overflow-hidden rounded-2xl border bg-card shadow-lg">
 									<Composer
 										busy={busy}
@@ -204,7 +205,7 @@ export function DraftShell({
 										// input (owner refinement round, 2026-09-24) — no lesson has
 										// started yet, so the composer must not read like one is in
 										// flight.
-										placeholder={mode === "practice" ? "What do you want to practice?" : "What do you want to learn?"}
+										placeholder={mode === "practice" ? t("session.new.practicePlaceholder") : t("session.new.placeholder")}
 									/>
 								</div>
 								<StatsBar
@@ -220,7 +221,7 @@ export function DraftShell({
 			{/* The floating reopen toggle — pointer-events-none except the
 			    toggle itself (home's pattern), painted AFTER the overlay's
 			    column so nothing of it blocks the canvas area. */}
-			<header className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-2">
+			<header className="lh-wco-gutter pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-2">
 				<div className="pointer-events-auto">
 					<SidebarToggle />
 				</div>
@@ -230,6 +231,7 @@ export function DraftShell({
 }
 
 export function NewSession({ initialConfigured, mode = "teach" }: { initialConfigured: boolean; mode?: "teach" | "practice" }) {
+	const t = useT();
 	const router = useRouter();
 	const [text, setText] = useState("");
 	/* The draft MIRROR ("nothing gets lost" round, 2026-10-01): the shell's
@@ -366,7 +368,7 @@ export function NewSession({ initialConfigured, mode = "teach" }: { initialConfi
 								onClick={() => setSetupOpen(true)}
 								className="rounded-sm border border-border bg-card px-3 py-1.5 font-ui text-xs text-foreground transition-colors hover:border-muted-foreground/50 hover:bg-accent cursor-pointer"
 							>
-								Set up your models
+								{t("session.new.setupModels")}
 							</button>
 						)
 					)

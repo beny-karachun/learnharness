@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import type { ChatInput, LhMessage, QuestionAnswerData } from "@/src/core";
 import { SessionModel, type SessionState } from "@/components/session-core";
+import { useT } from "@/components/i18n";
 
 export interface UseChatSessionOptions {
 	chatId: string;
@@ -31,9 +32,10 @@ export interface UseChatSessionOptions {
 export function useChatSession({ chatId, initialMessages, initialError, initiallyInFlight }: UseChatSessionOptions) {
 	// The model is per-mount (chatId-keyed component); onChange forces the
 	// re-render. The ref pattern keeps it stable across renders.
+	const t = useT();
 	const modelRef = useRef<SessionModel | null>(null);
 	if (modelRef.current === null) {
-		modelRef.current = new SessionModel({ chatId, initialMessages, initialError });
+		modelRef.current = new SessionModel({ chatId, initialMessages, initialError, t });
 	}
 	const model = modelRef.current;
 	// The render VERSION — bumped by every model change, so the state memo

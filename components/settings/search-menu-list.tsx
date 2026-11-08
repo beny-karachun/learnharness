@@ -56,6 +56,7 @@ export function SearchMenuList<T>({
 	return <>
 		<input
 			type="text"
+			dir="auto"
 			ref={searchRef}
 			data-testid={searchTestid}
 			aria-label={ariaLabel}
@@ -92,7 +93,7 @@ export function SearchMenuList<T>({
 					data-idx={i}
 					disabled={disabled}
 					onClick={() => onPick(item)}
-					className={`flex w-full flex-col gap-0.5 rounded-lg px-2 py-1.5 text-left outline-none transition-colors hover:bg-muted ${
+					className={`flex w-full flex-col gap-0.5 rounded-lg px-2 py-1.5 text-start outline-none transition-colors hover:bg-muted ${
 						i === menuIdx ? "bg-accent/40 ring-1 ring-inset ring-border" : ""
 					}${isSelected(item) && i !== menuIdx ? " bg-muted/60" : ""}`}
 				>{renderItem(item)}</button>

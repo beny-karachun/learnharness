@@ -1,20 +1,43 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { DICTATION_LANGUAGES, type DictationLanguage } from "@/src/core";
+import { useT, type Translate } from "@/components/i18n";
 import { MenuShell } from "@/components/menu-shell";
 import { Hint } from "@/components/ui/hint";
 import { SettingsMenuTrigger, SettingsRow } from "@/components/settings/controls";
 import { SearchMenuList } from "@/components/settings/search-menu-list";
 import { useDictationActive } from "@/components/dictation-state";
-import { useDictationLanguage } from "@/components/dictation-preference";
+import { dictationErrorText, useDictationLanguage } from "@/components/dictation-preference";
 
 type LanguagePreference = ReturnType<typeof useDictationLanguage>;
+type LanguageItem = { code: DictationLanguage; label: string; english: string };
+
+/** Hebrew edition: the Deepgram roster's names are English in src/core;
+ *  in Hebrew the picker shows the platform's own language names
+ *  (Intl.DisplayNames), sorted in Hebrew order with Multilingual first.
+ *  English keeps the core list exactly. The English name stays searchable. */
+function languageItems(t: Translate): LanguageItem[] {
+	if (t.locale === "en") return DICTATION_LANGUAGES.map((item) => ({ ...item, english: item.label }));
+	let names: Intl.DisplayNames | null = null;
+	try { names = new Intl.DisplayNames([t.locale], { type: "language" }); } catch { /* English fallback below */ }
+	const items = DICTATION_LANGUAGES.map((item) => {
+		let label = item.label;
+		if (item.code === "multi") label = t("shell.dictation.multilingual");
+		else {
+			try { label = names?.of(item.code) ?? item.label; } catch { /* keep the English name */ }
+		}
+		return { code: item.code, label, english: item.label };
+	});
+	const [multi, rest] = [items.filter((i) => i.code === "multi"), items.filter((i) => i.code !== "multi")];
+	return [...multi, ...rest.sort((a, b) => a.label.localeCompare(b.label, t.locale))];
+}
 
 export function DictationLanguageSetting() {
+	const t = useT();
 	const preference = useDictationLanguage();
 	const active = useDictationActive();
-	return <SettingsRow label="Language" testid="row-dictation-language" dimmed={active}>
+	return <SettingsRow label={t("shell.dictation.language")} testid="row-dictation-language" dimmed={active}>
 		<DictationLanguagePicker preference={preference} disabled={active} />
 	</SettingsRow>;
 }
@@ -23,10 +46,13 @@ function DictationLanguagePicker({ preference, disabled }: {
 	preference: LanguagePreference;
 	disabled: boolean;
 }) {
-	const { language, saving, error, load, save } = preference;
+	const t = useT();
+	const { language, saving, error: rawError, load, save } = preference;
+	const error = rawError === null ? null : dictationErrorText(rawError, t);
+	const items = useMemo(() => languageItems(t), [t]);
 	const [open, setOpen] = useState(false);
 	const triggerRef = useRef<HTMLButtonElement>(null);
-	const label = DICTATION_LANGUAGES.find((item) => item.code === language)?.label ?? "—";
+	const label = items.find((item) => item.code === language)?.label ?? "—";
 
 	useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
 	useEffect(() => {
@@ -55,12 +81,12 @@ function DictationLanguagePicker({ preference, disabled }: {
 	};
 
 	return <>
-		<Hint label={error ?? `Dictation language: ${label}`} side="top">
+		<Hint label={error ?? t("shell.dictation.languageValue", { label })} side="top">
 			<SettingsMenuTrigger
 				ref={triggerRef}
 				value={label}
 				data-testid="dictation-language"
-				aria-label={`Dictation language: ${label}`}
+				aria-label={t("shell.dictation.languageValue", { label })}
 				aria-expanded={open && !disabled}
 				disabled={disabled || saving}
 				onKeyDown={(event) => { if (open) closeOnEscape(event); }}
@@ -88,18 +114,18 @@ function DictationLanguagePicker({ preference, disabled }: {
 			}}>
 				{error && <div role="alert" className="mb-1.5 text-destructive">{error}</div>}
 				<SearchMenuList
-					items={DICTATION_LANGUAGES}
+					items={items}
 					itemKey={(item) => item.code}
-					searchTerms={(item) => [item.code, item.label]}
+					searchTerms={(item) => item.label === item.english ? [item.code, item.label] : [item.code, item.label, item.english]}
 					isSelected={(item) => item.code === language}
 					onPick={(item) => { void pick(item.code); }}
 					disabled={saving || language === undefined}
 					searchTestid="dictation-language-search"
 					listTestid="dictation-language-list"
 					optionTestid={(item) => `dictation-language-${item.code}`}
-					ariaLabel="Search dictation languages"
-					placeholder="Search languages…"
-					empty="No languages match."
+					ariaLabel={t("shell.dictation.searchLanguages")}
+					placeholder={t("shell.dictation.searchPlaceholder")}
+					empty={t("shell.dictation.noLanguages")}
 					renderItem={(item) => <span className="text-card-foreground">{item.label}</span>}
 				/>
 			</div>

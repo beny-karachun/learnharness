@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBackdropDismiss } from "@/components/backdrop-dismiss";
+import { useT } from "@/components/i18n";
 
 /** The 409 extraction_running line (owner phrasing, node interlude):
  *  the server's error names the extraction; the ACTIVITY DOCK is the
@@ -47,17 +48,18 @@ export function DeleteNodeBody({
 	onClose: () => void;
 	onRun: () => void;
 }) {
+	const t = useT();
 	return (
 		<div
 			role="dialog"
 			aria-modal="true"
-			aria-label="Delete node"
+			aria-label={t("graph.deleteNode.aria")}
 			data-testid="delete-node-dialog"
 			onClick={(e) => e.stopPropagation()}
 			className="w-[32rem] max-w-[calc(100vw-2rem)] rounded-xl border bg-card p-5 shadow-xl"
 		>
 			<h2 className="text-sm font-semibold text-destructive">
-				{folders.length > 0 ? (nodes.length > 0 ? "Delete nodes and remove empty folders?" : "Remove empty folders?") : nodes.length === 1 ? "Delete node?" : `Delete ${nodes.length} nodes?`}
+				{folders.length > 0 ? (nodes.length > 0 ? t("graph.deleteNode.titleWithFolders") : t("graph.deleteNode.titleFoldersOnly")) : t("graph.deleteNode.title", { count: nodes.length })}
 			</h2>
 			{/* The node name(s) below the title in JetBrains Mono (owner,
 			    2026-09-24): the name is the payload — mono suits it, and
@@ -76,18 +78,16 @@ export function DeleteNodeBody({
 				) : (
 					<code data-testid="node-names-code" className="font-mono text-sm text-foreground">
 						{nodes.slice(0, 8).map((n) => n.name).join(", ")}
-						{nodes.length > 8 ? `, and ${nodes.length - 8} more` : ""}
+						{nodes.length > 8 ? t("graph.andMore", { count: nodes.length - 8 }) : ""}
 					</code>
 				)}
 			</div>
-			{folders.length > 0 && <p className="mt-2 text-sm" data-testid="folder-removal-names">Empty folders: {folders.map((f) => f.name).join(", ")}</p>}
+			{folders.length > 0 && <p className="mt-2 text-sm" data-testid="folder-removal-names">{t("graph.deleteNode.emptyFolders", { names: folders.map((f) => f.name).join(", ") })}</p>}
 			{nodes.length > 0 && <p className="mt-2 text-sm text-muted-foreground" data-testid="node-permanence-line">
-				{nodes.length === 1
-					? "This permanently deletes the node — this cannot be undone."
-					: `This permanently deletes all ${nodes.length} nodes — this cannot be undone.`}
+				{t("graph.deleteNode.permanence", { count: nodes.length })}
 			</p>}
 			<p className="mt-2 text-xs text-muted-foreground" data-testid="folder-removal-explanation">
-				{folders.length > 0 ? "Only the named empty folders are removed. " : ""}Sessions, imported source records, and non-empty folders are kept.
+				{folders.length > 0 ? t("graph.deleteNode.onlyNamedFolders") : ""}{t("graph.deleteNode.kept")}
 			</p>
 			{failure && (
 				<div
@@ -96,16 +96,16 @@ export function DeleteNodeBody({
 					className="mt-3 rounded-sm border border-border/60 px-3 py-2 text-xs"
 				>
 					<span className="text-foreground">
-						{failure.code === "extraction_running" ? EXTRACTION_RETRY_LINE : failure.error}
+						{failure.code === "extraction_running" ? t("graph.deleteNode.extractionRunning") : failure.error}
 					</span>
 					<button
 						type="button"
 						data-testid="node-delete-retry"
 						onClick={onRun}
 						disabled={busy}
-						className="ml-3 text-xs text-foreground underline-offset-2 hover:underline disabled:opacity-40"
+						className="ms-3 text-xs text-foreground underline-offset-2 hover:underline disabled:opacity-40"
 					>
-						Try again
+						{t("common.tryAgain")}
 					</button>
 				</div>
 			)}
@@ -117,7 +117,7 @@ export function DeleteNodeBody({
 					disabled={busy}
 					className="rounded-sm px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
 				>
-					Cancel
+					{t("common.cancel")}
 				</button>
 				<button
 					type="button"
@@ -129,7 +129,7 @@ export function DeleteNodeBody({
 					// refusal banner): border + text, fill on hover.
 					className="rounded-sm border border-destructive/50 bg-destructive/10 px-3 py-1.5 text-xs text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-40"
 				>
-					{busy ? "Deleting…" : "Delete"}
+					{busy ? t("graph.deleting") : t("common.delete")}
 				</button>
 			</div>
 		</div>
@@ -158,6 +158,7 @@ export function DeleteNodeDialog({
 	 *  selection-side callers can prune. */
 	onDeleted: (nodeIds: string[], graphRevision: number) => void;
 }) {
+	const t = useT();
 	const [busy, setBusy] = useState(false);
 	const hasItems = Boolean(nodes?.length || folders.length);
 	const backdropDismiss = useBackdropDismiss(() => {
@@ -211,7 +212,7 @@ export function DeleteNodeDialog({
 					graphRevision?: number;
 				};
 				if (!res.ok) {
-					setFailure({ code: body.code ?? "error", error: body.error ?? `Delete failed (${res.status})` });
+					setFailure({ code: body.code ?? "error", error: body.error ?? t("graph.deleteNode.failedStatus", { status: String(res.status) }) });
 					setBusy(false);
 					if (dead.length > 0) onDeleted(dead, revision);
 					return;
@@ -220,14 +221,14 @@ export function DeleteNodeDialog({
 				revision = body.graphRevision ?? revision;
 			}
 			for (const folder of folders) {
-				if (!onRemoveFolder) throw new Error("Folder removal is unavailable.");
+				if (!onRemoveFolder) throw new Error(t("graph.deleteNode.folderRemovalUnavailable"));
 				await onRemoveFolder(folder.id);
 				removedFolders.push(folder.id);
 			}
 			if (removedFolders.length > 0) onFoldersDeleted?.(removedFolders);
 			onDeleted(dead, revision);
 		} catch (error) {
-			setFailure({ code: "network", error: folders.length > 0 && error instanceof Error ? error.message : "Delete failed — network error. Try again." });
+			setFailure({ code: "network", error: folders.length > 0 && error instanceof Error ? error.message : t("graph.deleteNode.networkError") });
 			if (removedFolders.length > 0) onFoldersDeleted?.(removedFolders);
 			setBusy(false);
 			if (dead.length > 0) onDeleted(dead, revision);

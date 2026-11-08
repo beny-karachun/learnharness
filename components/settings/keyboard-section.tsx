@@ -26,13 +26,38 @@ import {
 	type KeyAction,
 	type KeyScope,
 } from "@/src/core";
+import { useT, type MessageKey } from "@/components/i18n";
 import { SettingsRow } from "./controls.tsx";
 
-const SCOPES: { scope: KeyScope; label: string }[] = [
-	{ scope: "global", label: "Global" },
-	{ scope: "chat", label: "Chat" },
-	{ scope: "graph", label: "Graph" },
+const SCOPES: { scope: KeyScope; label: MessageKey }[] = [
+	{ scope: "global", label: "shell.kbd.scope.global" },
+	{ scope: "chat", label: "shell.kbd.scope.chat" },
+	{ scope: "graph", label: "shell.kbd.scope.graph" },
 ];
+
+/** Hebrew edition: the registry's labels stay English in src/core (core
+ *  may not import components); the surfaces that display them translate
+ *  by action id. Exhaustive by type — a new action without a label key is
+ *  a compile error. Shared with the cheat sheet (keyboard-shortcuts.tsx). */
+export const KEY_ACTION_LABEL_KEYS: Record<KeyAction, MessageKey> = {
+	"toggle-dictation": "shell.kbd.action.toggleDictation",
+	"open-settings": "shell.kbd.action.openSettings",
+	"open-model-picker": "shell.kbd.action.openModelPicker",
+	"cycle-thinking": "shell.kbd.action.cycleThinking",
+	"toggle-sidebar": "shell.kbd.action.toggleSidebar",
+	"sessions-search": "shell.kbd.action.sessionsSearch",
+	"jump-graph": "shell.kbd.action.jumpGraph",
+	"new-session": "shell.kbd.action.newSession",
+	"rename-session": "shell.kbd.action.renameSession",
+	"toggle-user-thinking": "shell.kbd.action.toggleUserThinking",
+	find: "shell.kbd.action.find",
+	"cheat-sheet": "shell.kbd.action.cheatSheet",
+	"question-focus": "shell.kbd.action.questionFocus",
+	"question-next-row": "shell.kbd.action.questionNextRow",
+	"question-prev-row": "shell.kbd.action.questionPrevRow",
+	"question-pick-row": "shell.kbd.action.questionPickRow",
+	"question-submit": "shell.kbd.action.questionSubmit",
+};
 
 /** The overrides map after ONE change (pure — exported for tests):
  *  binding null = reset the action to its default (key removed). */
@@ -48,6 +73,7 @@ export function nextOverrides(
 }
 
 export function KeyboardSection() {
+	const t = useT();
 	const [overrides, setOverrides] = useState<Partial<Record<KeyAction, string>>>({});
 	const [rebinding, setRebinding] = useState<KeyAction | null>(null);
 	const [nonce, setNonce] = useState(0);
@@ -101,20 +127,20 @@ export function KeyboardSection() {
 				if (!actions.length) return null;
 				return (
 					<div key={scope} data-testid={`kbd-scope-${scope}`}>
-						<p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground/70">{label}</p>
+						<p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground/70">{t(label)}</p>
 						<div className="flex flex-col gap-2">
 							{actions.map((def) => {
 								const effective = overrides[def.id] ?? def.binding;
 								return (
 									<SettingsRow
 										key={def.id}
-										label={def.label}
-										hint={def.displayOnly ? "Fixed — part of this screen" : undefined}
+										label={t(KEY_ACTION_LABEL_KEYS[def.id])}
+										hint={def.displayOnly ? t("shell.kbd.fixed") : undefined}
 										testid={`kbd-row-${def.id}`}
 									>
 										<span className="flex items-center gap-2">
 											<kbd className="rounded-sm border border-border bg-muted px-1.5 py-0.5 font-ui text-xs">
-												{rebinding === def.id ? "Press keys…" : formatBinding(effective)}
+												{rebinding === def.id ? t("shell.kbd.pressKeys") : formatBinding(effective)}
 											</kbd>
 											{def.displayOnly ? null : rebinding === def.id ? (
 												<button
@@ -122,7 +148,7 @@ export function KeyboardSection() {
 													onClick={() => setRebinding(null)}
 													className="text-xs text-muted-foreground/70 underline-offset-2 hover:text-foreground hover:underline"
 												>
-													Cancel
+													{t("common.cancel")}
 												</button>
 											) : (
 												<>
@@ -132,7 +158,7 @@ export function KeyboardSection() {
 														data-testid={`kbd-rebind-${def.id}`}
 														className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
 													>
-														Rebind
+														{t("shell.kbd.rebind")}
 													</button>
 													{overridden(def.id) && (
 														<button
@@ -141,7 +167,7 @@ export function KeyboardSection() {
 															data-testid={`kbd-reset-${def.id}`}
 															className="text-xs text-muted-foreground/70 underline-offset-2 hover:text-foreground hover:underline"
 														>
-															Reset
+															{t("shell.kbd.reset")}
 														</button>
 													)}
 												</>
@@ -155,14 +181,14 @@ export function KeyboardSection() {
 				);
 			})}
 			<div className="mt-1 flex items-center justify-between">
-				<span className="text-xs text-muted-foreground/70">Stored on this device (lh:keymap) — overrides only.</span>
+				<span className="text-xs text-muted-foreground/70">{t("shell.kbd.storedNote")}</span>
 				<button
 					type="button"
 					onClick={resetAll}
 					data-testid="kbd-reset-all"
 					className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
 				>
-					Reset all to defaults
+					{t("shell.kbd.resetAll")}
 				</button>
 			</div>
 		</>
