@@ -115,6 +115,9 @@ const jobRunner = createJobRunner({
 	// null = honestly unavailable; the dispatch-level drop (below) uses the
 	// same signal so keyless servers never see the research tool at all.
 	searchProvider,
+	// Hebrew edition: learner-visible job output (demos, visuals) follows the
+	// app language, read fresh per job.
+	locale: () => effectiveSettings().appearance.locale,
 });
 /** The app's ONE extraction pipeline instance — both front doors share it:
  *  quiz-triggered session runs (turn-service) and notes imports
@@ -132,6 +135,8 @@ export const extraction = createExtractionPipeline({
 	// refuses BEFORE any batch runs (the typed throw), never mid-run.
 	providerKeyMissing: (provider, tier) =>
 		providerKeyPresent(provider) ? null : providerKeyMissingEnvelope(provider, [tier]),
+	// Hebrew edition: graph text (propositions, chains) in the app language.
+	getLocale: () => effectiveSettings().appearance.locale,
 });
 
 
@@ -460,6 +465,8 @@ export async function handleChatInput(
 		// point as the tool delta — the agent layer composes the system
 		// prompt fresh per turn, swapping in any enabled override segments.
 		promptSwitches: effective.agent.prompts,
+		// Hebrew edition: the app language picks the tutor's output language.
+		locale: effective.appearance.locale,
 	};
 	// PRACTICE BRANCH (owner design, 2026-10-04): a kind:"practice"
 	// session builds the practitioner from turn 1 — no prober→teacher

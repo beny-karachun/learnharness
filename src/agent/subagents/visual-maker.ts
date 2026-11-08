@@ -1,3 +1,5 @@
+import type { Locale } from "../../core/locale.ts";
+import { withLocale, workerLocaleRule } from "../locale/he.ts";
 import { randomUUID } from "node:crypto";
 import type { AssistantMessage, Message, Tool, ToolResultMessage, Usage } from "@earendil-works/pi-ai";
 import { normalizeContext } from "@earendil-works/pi-ai";
@@ -65,6 +67,8 @@ export interface VisualMakerOptions {
 	onUsage?: (usage: Usage) => void;
 	/** Debug: raw provider-event recording key (LH_PROVIDER_EVENTS=1). */
 	chatId?: string;
+	/** Hebrew edition: the app language for learner-visible text. */
+	locale?: Locale;
 }
 
 const INSTRUCTIONS = `You are a visual maker — a diagram author + renderer for precise, spatial figures. You
@@ -180,7 +184,10 @@ export async function runVisualMaker(input: VisualMakerInput, opts: VisualMakerO
 	const capture = createBackgroundCapture({ role: "visualMaker", runId: sessionId, sourceId: opts.chatId });
 	const streamEngine = { ...engine, streamFn: backgroundCaptureStream(engine.streamFn, capture) };
 	const learnerImage = input.image;
-	const systemPrompt = learnerImage ? `${INSTRUCTIONS}\n\n${IMAGE_INSTRUCTIONS}` : INSTRUCTIONS;
+	const systemPrompt = withLocale(
+		learnerImage ? `${INSTRUCTIONS}\n\n${IMAGE_INSTRUCTIONS}` : INSTRUCTIONS,
+		workerLocaleRule(opts.locale, "every text label in the figure"),
+	);
 	const prompt = [
 		learnerImage
 			? "Brief for ONE annotated image (from the teacher, verbatim — it is everything you know):"

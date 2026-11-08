@@ -26,6 +26,7 @@ import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { ModelRole } from "../../config.ts";
 import type { ChatSettings } from "./contracts/chat.ts";
 import type { SearchEngineId } from "./search.ts";
+import { defaultDictationLanguage } from "./locale.ts";
 import {
 	BACKGROUND_MODEL_ROLES,
 	FACTORY_SETTINGS,
@@ -188,7 +189,7 @@ export function resolveSettings(record: UserSettings | null): EffectiveSettings 
 			autoUpdate: record?.general?.autoUpdate ?? FACTORY_SETTINGS.general.autoUpdate,
 		},
 		dictation: {
-			language: record?.dictation?.language ?? FACTORY_SETTINGS.dictation.language,
+			language: record?.dictation?.language ?? defaultDictationLanguage(record?.appearance?.locale),
 		},
 		agent: {
 			models,
@@ -208,6 +209,7 @@ export function resolveSettings(record: UserSettings | null): EffectiveSettings 
 			fontFamily: appearance.fontFamily ?? factoryAppearance.fontFamily,
 			proseFontSize: appearance.proseFontSize ?? factoryAppearance.proseFontSize,
 			sessionNameSerif: appearance.sessionNameSerif ?? factoryAppearance.sessionNameSerif,
+			locale: appearance.locale ?? factoryAppearance.locale,
 			mdRendering: {
 				headingWeight: md.headingWeight ?? factoryMd.headingWeight,
 				boldColor: md.boldColor ?? factoryMd.boldColor,

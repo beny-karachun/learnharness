@@ -36,6 +36,7 @@ import type { ModelRole } from "../../config.ts";
 import type { ChatSettings } from "./contracts/chat.ts";
 import { isSearchEngineId, type SearchEngineId } from "./search.ts";
 import { isDictationLanguage, type DictationLanguage } from "./dictation.ts";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "./locale.ts";
 import { parseFileAccessSettings, type FileAccessSettings } from "./file-access.ts";
 
 /** The schema version this code understands. Bump ONLY for breaking shape
@@ -403,6 +404,9 @@ export interface AppearanceSettings {
 	/** Session names in CMU Serif (default true — today's look). */
 	sessionNameSerif?: boolean;
 	mdRendering?: MdRenderingSettings;
+	/** App language (Hebrew edition): UI language/direction and the
+	 *  language the tutor writes in. Default "he". */
+	locale?: Locale;
 }
 
 /** Knowledge-graph settings — a strict dependency ladder (owner decision
@@ -502,6 +506,7 @@ export interface FactorySettings {
 		fontFamily: string | null;
 		proseFontSize: number;
 		sessionNameSerif: boolean;
+		locale: Locale;
 		mdRendering: {
 			headingWeight: number;
 			boldColor: string | null;
@@ -522,6 +527,7 @@ export const FACTORY_SETTINGS: FactorySettings = {
 		fontFamily: null, // Source Sans 3
 		proseFontSize: 16,
 		sessionNameSerif: true,
+		locale: DEFAULT_LOCALE,
 		mdRendering: { headingWeight: 900, boldColor: null, italicColor: null },
 	},
 	graph: { enabled: true, rendering: true, extractionChunkTokens: 4096 },
@@ -761,6 +767,7 @@ function sanitizeAppearance(raw: Record<string, unknown>): AppearanceSettings {
 	const sessionNameSerif = boolOrDrop(raw.sessionNameSerif);
 	if (sessionNameSerif !== undefined) out.sessionNameSerif = sessionNameSerif;
 	if (raw.mdRendering !== undefined) out.mdRendering = sanitizeMdRendering(raw.mdRendering);
+	if (isLocale(raw.locale)) out.locale = raw.locale;
 	return out;
 }
 

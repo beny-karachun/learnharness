@@ -31,6 +31,7 @@ import { BACKGROUND_MODEL_ROLES, CACHE_RETENTIONS, COMPACTION_THRESHOLD_FLOOR, C
 import { WRITABLE_TOOL_KEYS } from "../core/pending.ts";
 import { isSearchEngineId, SEARCH_ENGINES } from "../core/search.ts";
 import { isDictationLanguage } from "../core/dictation.ts";
+import { isLocale } from "../core/locale.ts";
 import { parseFileAccessSettings } from "../core/file-access.ts";
 
 /** Parsed-or-rejected — `ok: false` carries the 400's error message. */
@@ -270,6 +271,10 @@ export function parseAppearanceSettingsBody(body: unknown): SettingsBodyResult<A
 			return { ok: false, error: "sessionNameSerif must be a boolean" };
 		}
 		settings.sessionNameSerif = raw.sessionNameSerif;
+	}
+	if (raw.locale !== undefined) {
+		if (!isLocale(raw.locale)) return { ok: false, error: "locale must be \"he\" or \"en\"" };
+		settings.locale = raw.locale;
 	}
 	if (raw.mdRendering !== undefined) {
 		const md = asRecord(raw.mdRendering);

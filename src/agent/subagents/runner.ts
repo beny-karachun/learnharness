@@ -1,3 +1,4 @@
+import type { Locale } from "../../core/locale.ts";
 import type { PiEngine } from "../models.ts";
 import type { SearchProvider } from "../../core/search.ts";
 import {
@@ -93,6 +94,8 @@ export interface JobRunnerDeps {
 	 *  Injected because the agent layer may not read the key store; absent
 	 *  in tests that inject engines directly (test engines never owe a key). */
 	providerKeyMissing?: (provider: string, tier: ModelSlotName) => ProviderKeyMissing | null;
+	/** Hebrew edition: the app language, read fresh per job (absent = English). */
+	locale?: () => Locale;
 }
 
 export interface JobRunner {
@@ -428,6 +431,7 @@ export function createJobRunner(deps: JobRunnerDeps): JobRunner {
 					engine: model,
 					abortSignal: loop.abortSignal,
 					chatId: loop.chatId,
+					locale: deps.locale?.(),
 					onUsage: (usage) => loop.onUsage(piUsageToStep(usage)),
 					onActivity: (line) => jobStore.updateJob(jobId, { activity: line }),
 				},
@@ -472,6 +476,7 @@ export function createJobRunner(deps: JobRunnerDeps): JobRunner {
 					engine: model,
 					abortSignal: loop.abortSignal,
 					chatId: loop.chatId,
+					locale: deps.locale?.(),
 					onUsage: (usage) => loop.onUsage(piUsageToStep(usage)),
 					onActivity: (line) => jobStore.updateJob(jobId, { activity: line }),
 				},

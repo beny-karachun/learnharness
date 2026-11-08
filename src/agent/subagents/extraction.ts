@@ -1,4 +1,6 @@
 import * as crypto from "node:crypto";
+import type { Locale } from "../../core/locale.ts";
+import { withLocale, workerLocaleRule } from "../locale/he.ts";
 import type { Usage } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { Type, type Static, type TSchema } from "typebox";
@@ -498,6 +500,7 @@ function runExtractor(
 	batchIds: ReadonlySet<string>,
 	signal: AbortSignal | undefined,
 	onStep: (usage: Usage, model: string, step: number, finishReason: string, tools: string) => void,
+	locale?: Locale,
 ): Promise<SessionFindings> {
 	// Chains in (the wire), chains out (the store) — no translation seam
 	// since chains-primary. Validation runs at the submit seam (error-back)
@@ -513,7 +516,7 @@ function runExtractor(
 		parameters: sessionFindingsSchema,
 		fill: fillFindings,
 		validate: (value) => validateSessionAnchors(value, batchIds) ?? validateFindingsChains(value, existingIds),
-		systemPrompt: EXTRACTOR_INSTRUCTIONS,
+		systemPrompt: withLocale(EXTRACTOR_INSTRUCTIONS, workerLocaleRule(locale, "every proposition statement, name, and chain step")),
 		prompt,
 		engine,
 		signal,
@@ -534,6 +537,7 @@ function runNotesExtractor(
 	existingIds: ReadonlySet<string>,
 	signal: AbortSignal | undefined,
 	onStep: (usage: Usage, model: string, step: number, finishReason: string, tools: string) => void,
+	locale?: Locale,
 ): Promise<NotesFindings> {
 	return runSubmitAgent<FindingsSubmit>({
 		role: "extractor",
@@ -544,7 +548,7 @@ function runNotesExtractor(
 		parameters: findingsSchema,
 		fill: fillNotesFindings,
 		validate: (value) => validateFindingsChains(value, existingIds),
-		systemPrompt: NOTES_EXTRACTOR_INSTRUCTIONS,
+		systemPrompt: withLocale(NOTES_EXTRACTOR_INSTRUCTIONS, workerLocaleRule(locale, "every proposition statement, name, and chain step (translate from the notes' language if needed, faithfully)")),
 		prompt,
 		engine,
 		signal,
@@ -748,6 +752,8 @@ export interface ExtractionPipelineDeps extends GraphDeps, ExtractionModels {
 	 *  callers wire the live effective settings (extraction-UX redesign,
 	 *  2026-09-24). */
 	getChunkTokens?: () => number;
+	/** Hebrew edition: the app language for graph text (absent = English). */
+	getLocale?: () => Locale;
 }
 
 export interface NotesImportInput {
@@ -956,6 +962,7 @@ export function createExtractionPipeline(deps: ExtractionPipelineDeps): Extracti
 				recordStep(jobKey, "extractor", callUsage(usage), model);
 				console.info(`[extraction] extractor step ${step}: ${finishReason}, tools: ${tools}`);
 			},
+			deps.getLocale?.(),
 		);
 		console.info(`[extraction ${jobKey}] extractor done in ${Math.round(performance.now() - t0)}ms`);
 		return findings;
@@ -1308,6 +1315,7 @@ export function createExtractionPipeline(deps: ExtractionPipelineDeps): Extracti
 				recordStep(jobKey, "extractor", callUsage(usage), model);
 				console.info(`[extraction] extractor step ${step}: ${finishReason}, tools: ${tools}`);
 			},
+			deps.getLocale?.(),
 		);
 		console.info(`[extraction ${jobKey}] notes extractor done in ${Math.round(performance.now() - t0)}ms`);
 		return findings;

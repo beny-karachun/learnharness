@@ -1,3 +1,5 @@
+import type { Locale } from "../../core/locale.ts";
+import { withLocale, workerLocaleRule } from "../locale/he.ts";
 import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import type { Usage } from "@earendil-works/pi-ai";
@@ -44,6 +46,8 @@ export interface DemoBuilderOptions {
 	onUsage?: (usage: Usage) => void;
 	/** Debug: raw provider-event recording key (LH_PROVIDER_EVENTS=1). */
 	chatId?: string;
+	/** Hebrew edition: the app language for learner-visible text. */
+	locale?: Locale;
 }
 
 const INSTRUCTIONS = `You are a demo builder — a specialist sub-agent inside a learning application. You
@@ -207,7 +211,7 @@ export async function runDemoBuilder(input: DemoBuilderInput, opts: DemoBuilderO
 		const result = await runSubagent(Object.values(createDemoBuilderTools(state, headless, opts.onActivity)), {
 			role: "demoBuilder",
 			engine: opts.engine,
-			systemPrompt: INSTRUCTIONS,
+			systemPrompt: withLocale(INSTRUCTIONS, workerLocaleRule(opts.locale, "every piece of visible text in the demo (labels, buttons, captions, instructions)") + (opts.locale === "he" ? " Put lang=\"he\" dir=\"rtl\" on <html>, and wrap formulas, numbers with units, and code in dir=\"ltr\" spans." : "")),
 			prompt,
 			maxTurns: opts.maxSteps ?? 24,
 			abortSignal: opts.abortSignal,

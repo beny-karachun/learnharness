@@ -33,6 +33,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
 	EXTRACTION_CHUNK_TOKENS_FLOOR,
+	isLocale,
 	resolveSettings,
 	type AppearanceSettings,
 	type GraphSettings,
@@ -186,6 +187,19 @@ export function AppearanceSection({
 
 	return (
 		<>
+			<SettingsRow label="Language · שפה" hint="Interface and tutor language" testid="row-locale">
+				<ThinSelect
+					value={resolved.locale}
+					ariaLabel="language"
+					testid="select-locale"
+					onChange={(value) => {
+						if (isLocale(value)) onSectionChange({ ...appearance, locale: value });
+					}}
+				>
+					<option value="he">עברית</option>
+					<option value="en">English</option>
+				</ThinSelect>
+			</SettingsRow>
 			<SettingsRow label="Mode" hint="Coming soon" testid="row-mode" dimmed>
 				<ThinSelect value="dark" ariaLabel="mode" onChange={() => {}} testid="select-mode" disabled>
 					<option value="dark">Dark</option>

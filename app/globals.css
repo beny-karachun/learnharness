@@ -118,10 +118,13 @@
 	   fonts: `font-mono`/`font-sans` utilities would otherwise fall to the
 	   SYSTEM stacks — a fourth font the app never chose — and streamdown's
 	   code-block chrome + mermaid-error + demo-card all use them. */
-	--font-ui: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
-	--font-prose: var(--font-sans3), ui-sans-serif, system-ui, sans-serif;
-	--font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
-	--font-sans: var(--font-sans3), ui-sans-serif, system-ui, sans-serif;
+	/* Hebrew edition: --font-hebrew (IBM Plex Sans Hebrew) right after each
+	   Latin face — the Latin fonts have no Hebrew glyphs, so Hebrew text
+	   falls through to Plex while Latin text keeps today's look. */
+	--font-ui: var(--font-jetbrains), var(--font-hebrew), ui-monospace, SFMono-Regular, monospace;
+	--font-prose: var(--font-sans3), var(--font-hebrew), ui-sans-serif, system-ui, sans-serif;
+	--font-mono: var(--font-jetbrains), var(--font-hebrew), ui-monospace, SFMono-Regular, monospace;
+	--font-sans: var(--font-sans3), var(--font-hebrew), ui-sans-serif, system-ui, sans-serif;
 	/* The modular type ladder — each size carries its own line-height.
 	   Component sizes must pull from this ladder. (owner, typography
 	   round 4: the 10px rung is merged into 11 — one pixel apart was a
@@ -317,6 +320,31 @@ body {
 .katex-display {
 	overflow-x: auto;
 	overflow-y: hidden;
+}
+
+/* Hebrew edition: math is always left-to-right, isolated from the
+   surrounding (possibly right-to-left) prose so neighbouring punctuation
+   and Hebrew words don't reorder around it. Inline code likewise. */
+.katex,
+.katex-display {
+	direction: ltr;
+	unicode-bidi: isolate;
+}
+.lh-prose code {
+	unicode-bidi: isolate;
+}
+/* Per-paragraph direction from the paragraph's own text (Hebrew → RTL,
+   English → LTR), with no DOM wrappers. Math and inline code are isolates
+   (above), and the bidi algorithm skips isolates when it looks for the
+   first strong letter — so a Hebrew paragraph that OPENS with a formula
+   still reads right-to-left. text-align:start follows each paragraph. */
+.lh-prose :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, dt, dd) {
+	unicode-bidi: plaintext;
+	text-align: start;
+}
+/* Table cells: direction only — markdown column alignment stays theirs. */
+.lh-prose :is(td, th) {
+	unicode-bidi: plaintext;
 }
 
 /* ============================================================
@@ -564,7 +592,7 @@ body {
    session-name-serif toggle overrides this var at runtime, so the
    .font-title utility must read it through var(), not carry a baked copy. */
 @theme {
-	--font-title: "lh-cmu", serif;
+	--font-title: "lh-cmu", var(--font-hebrew-serif), serif;
 }
 
 /* Card enter (owner round, 2026-10-05): the transcript cards' one-shot

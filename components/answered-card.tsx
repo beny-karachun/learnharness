@@ -160,7 +160,7 @@ export function AnsweredCard({ answer: savedAnswer, input }: { answer: QuestionA
 				</div>
 			)}
 
-			{answer.text && <div className="lh-prose mt-2 whitespace-pre-wrap">“<PathText text={answer.text} />”</div>}
+			{answer.text && <div dir="auto" className="lh-prose mt-2 whitespace-pre-wrap">“<PathText text={answer.text} />”</div>}
 
 			{/* The confidence record (owner round 6): the slider's rail, disc
 			    removed — the missing handle itself says "this is a record, not a

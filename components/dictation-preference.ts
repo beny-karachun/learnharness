@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import {
-	FACTORY_SETTINGS, isDictationLanguage, sanitizeUserSettings,
+	defaultDictationLanguage, isDictationLanguage, sanitizeUserSettings,
 	type DictationLanguage, type UserSettings,
 } from "@/src/core";
 import { notifySettingsSaved, onSettingsSaved } from "@/components/settings-signal";
@@ -39,7 +39,7 @@ export function createDictationLanguageStore(request: typeof fetch, saved: () =>
 				const record = sanitizeUserSettings(body.settings);
 				if (body.settings !== null && record === null) throw new Error();
 				if (version !== revision) return getLanguage();
-				const language = record?.dictation?.language ?? FACTORY_SETTINGS.dictation.language;
+				const language = record?.dictation?.language ?? defaultDictationLanguage(record?.appearance?.locale);
 				needsRead = false;
 				publish({ language, error: null });
 				return language;

@@ -24,6 +24,8 @@ import { QUESTION_TOOLS, type EnabledTools } from "../core/pending.ts";
 import { toLlmMessages, nativeInputCause, PRACTICE_PROBLEM_TOOL } from "../core/native-messages.ts";
 import type { ChatGPTRequestCycle } from "./chatgpt-request-cycle.ts";
 import { usageWasAdmitted } from "./subscription-request-cycle.ts";
+import type { Locale } from "../core/locale.ts";
+import { tutorLocaleRule } from "./locale/he.ts";
 
 /**
  * The two teaching-side agents (docs/archive/probe-teach-split.md): the PROBER and
@@ -123,6 +125,9 @@ export interface AgentBuildOptions {
 	 *  fresh per turn, honoring enabled overrides (switch on + file
 	 *  exists); absent → the cached pure-source composition. */
 	promptSwitches?: Record<string, boolean>;
+	/** App language (Hebrew edition). "he" appends the Hebrew tutor rule
+	 *  (src/agent/locale/he.ts); absent/"en" = the source prompt unchanged. */
+	locale?: Locale;
 	/** Native conversation identity: the existing persisted chat id, reused
 	 * across reconstructed prober, teacher, and practice Agents.
 	 * Debug: when set AND LH_PROVIDER_EVENTS=1, raw provider stream events
@@ -187,7 +192,11 @@ function baseAgentOptions(kind: AgentKind, opts: AgentBuildOptions, tools: Agent
 	const composedPrompt = opts.promptSwitches
 		? composeInstructions(kind, opts.promptSwitches)
 		: composedInstructions[kind]!;
-	const systemPrompt = narrationGuard ? `${composedPrompt}\n\n---\n\n${SEND_TO_USER_DELIVERY_RULE}` : composedPrompt;
+	const guardedPrompt = narrationGuard ? `${composedPrompt}\n\n---\n\n${SEND_TO_USER_DELIVERY_RULE}` : composedPrompt;
+	// Hebrew edition: the locale rule goes LAST, after the delivery rule, in
+	// a fixed order (stable per user → prompt caching / CLI reuse hold).
+	const localeRule = tutorLocaleRule(opts.locale);
+	const systemPrompt = localeRule ? `${guardedPrompt}\n\n---\n\n${localeRule}` : guardedPrompt;
 	// Debug recorder (owner, 2026-10-04): raw provider events when
 	// LH_PROVIDER_EVENTS=1 and the caller handed a chatId; undefined is
 	// the normal no-observer path (tests, env-off).

@@ -180,7 +180,7 @@ function MermaidInline({ chart }: { chart: string }) {
 
 	if (incomplete || (svg === null && error === null)) {
 		return (
-			<div data-testid="md-mermaid" className="my-4 flex justify-center p-4" aria-busy="true">
+			<div data-testid="md-mermaid" className="my-4 flex justify-center p-4" aria-busy="true" dir="ltr">
 				<span className="inline-block size-4 animate-spin rounded-full border border-current border-b-2 text-muted-foreground" />
 			</div>
 		);
@@ -191,7 +191,7 @@ function MermaidInline({ chart }: { chart: string }) {
 	return (
 		// data-streamdown="mermaid" keeps the house CSS hook (the svg
 		// max-width rule in globals.css) alive for this app-owned block.
-		<div data-testid="md-mermaid" data-streamdown="mermaid" className="group/md relative my-4">
+		<div data-testid="md-mermaid" data-streamdown="mermaid" className="group/md relative my-4" dir="ltr">
 			<div
 				ref={holderRef}
 				className="mx-auto flex w-full justify-center"
@@ -256,7 +256,7 @@ export function MarkdownCode(props: ComponentProps<"code"> & ExtraProps) {
 	const startLine = startMatch ? Number.parseInt(startMatch[1]!, 10) : undefined;
 	const lineNumbers = !/\bnoLineNumbers\b/.test(meta);
 	return (
-		<div className="group/md relative" data-testid="md-code">
+		<div className="group/md relative" data-testid="md-code" dir="ltr">
 			<CopyCorner className="absolute top-1.5 right-2 z-10" getText={() => source} label="Copy code" />
 			<CodeBlock
 				code={source}
@@ -431,7 +431,7 @@ export function MathDisplay(props: ComponentProps<"span"> & ExtraProps) {
 		// land on it (owner report: the math corner neither highlights on hover
 		// nor copies; everything else works). display:block gives the corner a
 		// real box; z-10 keeps it above the equation spans it overlays.
-		<span className="group/md relative block z-0" data-testid="md-math">
+		<span className="group/md relative block z-0" data-testid="md-math" dir="ltr">
 			<CopyCorner
 				className="absolute top-0 right-0 z-10"
 				label="Copy equation source"

@@ -11,7 +11,8 @@ test("all readers immediately receive the confirmed write without another GET", 
 		reads++;
 		return failReads ? Response.json({}, { status: 500 }) : Response.json({ settings: null });
 	}, () => { notifications++; });
-	assert.equal(await store.load(), "en");
+	// Hebrew edition: no record → the app-language default.
+	assert.equal(await store.load(), "he");
 	const observed: string[] = [];
 	const off = store.subscribe(() => { observed.push(`${store.getSnapshot().language}:${store.getSnapshot().saving}`); });
 	failReads = true;

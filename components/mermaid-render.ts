@@ -24,7 +24,7 @@ export const MERMAID_FONT_SIZE = 16;
 // mermaid's dark theme. (Moved from ai-elements/message.tsx when the
 // renderer became app-owned; the old `mermaid` prop wiring is retired.)
 export const mermaidTheme: MermaidConfig = {
-	fontFamily: "ui-sans-serif, system-ui, sans-serif",
+	fontFamily: "ui-sans-serif, system-ui, var(--font-hebrew), sans-serif",
 	fontSize: MERMAID_FONT_SIZE,
 	securityLevel: "strict",
 	theme: "dark",

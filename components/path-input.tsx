@@ -280,6 +280,7 @@ export const PathInput = React.forwardRef<HTMLDivElement, PathInputProps>(functi
 			aria-placeholder={placeholder}
 			contentEditable
 			suppressContentEditableWarning
+			dir={props.dir ?? "auto"}
 			data-file-path-input=""
 			data-empty={initial.current.value.length === 0 ? "true" : "false"}
 			data-file-path-default={defaultDropTarget ? "" : undefined}
