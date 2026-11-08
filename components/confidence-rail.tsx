@@ -53,6 +53,7 @@ export function ConfidenceRail({ value, className }: { value: number; className?
 	return (
 		<div
 			aria-hidden
+			dir="ltr"
 			data-testid="confidence-rail"
 			className={cn("h-1.5 w-full rounded-full border border-border", className)}
 			style={confidenceRailStyle(value)}

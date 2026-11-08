@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { bindingForAction, formatBinding, type KeyAction } from "@/src/core"
+import { Direction } from "radix-ui"
 
 /**
  * The tooltip composition for icon and pill controls (tooltip wave, owner
@@ -44,11 +45,14 @@ export function hintText(label: string, action?: KeyAction, binding?: string): s
 }
 
 export function Hint({ label, action, binding, side = "top", children }: HintProps) {
+	// Hebrew edition: left/right are reading-relative — mirrored in RTL.
+	const dir = Direction.useDirection()
+	const placed = dir === "rtl" && side === "left" ? "right" : dir === "rtl" && side === "right" ? "left" : side
 	return (
 		<TooltipProvider>
 			<Tooltip>
 				<TooltipTrigger asChild>{children}</TooltipTrigger>
-				<TooltipContent side={side}>{hintText(label, action, binding)}</TooltipContent>
+				<TooltipContent side={placed}>{hintText(label, action, binding)}</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	)

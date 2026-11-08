@@ -230,7 +230,10 @@ function MetadataPopover({
 						if (r) {
 							// Below the trigger, always; clamped so the 320px box
 							// never leaves the viewport's right edge.
-							const left = Math.max(8, Math.min(r.left, window.innerWidth - 328));
+							// Hebrew edition: in RTL the box hangs from the trigger's
+							// right edge instead (mirrored layout).
+							const start = document.documentElement.dir === "rtl" ? r.right - 320 : r.left;
+							const left = Math.max(8, Math.min(start, window.innerWidth - 328));
 							setAnchor({ top: r.bottom + 8, left });
 						}
 						return true;

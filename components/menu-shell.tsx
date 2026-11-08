@@ -91,8 +91,13 @@ export function computeMenuPlacement(
 	}
 	const avail = side === "down" ? availDown : availUp;
 	const maxHeight = Math.max(MIN_USABLE, Math.min(CAP_VH * viewport.height, avail));
+	// Hebrew edition: alignment is relative to reading direction — in a
+	// right-to-left page a "right"-aligned menu hangs from the anchor's
+	// LEFT edge (the mirrored layout's equivalent).
+	const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
+	const effective: MenuAlign = rtl ? (align === "right" ? "left" : "right") : align;
 	const horizontal: Record<string, number> =
-		align === "right" ? { right: viewport.width - rect.right } : { left: rect.left };
+		effective === "right" ? { right: viewport.width - rect.right } : { left: rect.left };
 	const vertical: Record<string, number> =
 		side === "down" ? { top: rect.bottom + GAP } : { bottom: viewport.height - rect.top + GAP };
 	return { side, style: { ...horizontal, ...vertical }, maxHeight };

@@ -107,7 +107,10 @@ export function useChainNavigation(rootRef: RefObject<HTMLDivElement | null>, se
 				event.preventDefault(); event.stopPropagation(); checkbox.click(); highlight(row.key, true);
 				return;
 			}
-			const result = navigateChainRows(readRows(), fromSearch ? null : active.current, event.key);
+			// Hebrew edition: in a right-to-left page "into the tree" is ←.
+			const rtl = document.documentElement.dir === "rtl";
+			const key = rtl && event.key === "ArrowLeft" ? "ArrowRight" : rtl && event.key === "ArrowRight" ? "ArrowLeft" : event.key;
+			const result = navigateChainRows(readRows(), fromSearch ? null : active.current, key);
 			if (!result.key) return;
 			event.preventDefault(); event.stopPropagation();
 			highlight(result.key, true);

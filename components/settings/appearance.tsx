@@ -21,6 +21,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { FACTORY_SETTINGS, type AppearanceSettings } from "@/src/core";
+import { useT } from "@/components/i18n";
 
 /** The resolved, fully-concrete appearance view (delta + factory merged). */
 export function resolveAppearance(delta: AppearanceSettings | undefined) {
@@ -174,9 +175,19 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
 		};
 	}, []);
 
+	// Hebrew edition: a saved language change reloads the window — the
+	// server layout renders <html lang dir> and the translation provider
+	// from the record, so a reload is the one consistent switch.
+	const shownLocale = useT().locale;
 	const onAppearanceChange = useCallback((next: AppearanceSettings | undefined) => {
 		setDelta(next);
-	}, []);
+		// Only an explicit locale in the saved section counts (the picker
+		// always writes one); other appearance edits never reload.
+		const nextLocale = next?.locale;
+		if (nextLocale !== undefined && nextLocale !== shownLocale && typeof window !== "undefined" && typeof window.location?.reload === "function") {
+			window.location.reload();
+		}
+	}, [shownLocale]);
 
 	const value = useMemo(
 		() => ({ appearance: resolveAppearance(delta), onAppearanceChange }),

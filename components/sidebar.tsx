@@ -183,7 +183,13 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 	return (
 		<SidebarContext.Provider value={{ open: open && !narrow, toggle }}>
 			{/* transitions gated on mount: no slide-in flash on page load */}
-			<div className={cn("flex h-dvh", mounted && "[&_.sidebar-motion]:transition-[width,margin,opacity]")}>{children}</div>
+			{/* data-lh-sidebar: the RTL window-controls gutter (globals.css)
+			    needs to know whether the sidebar is the band under the native
+			    buttons (Hebrew edition: the sidebar mirrors to the right). */}
+			<div
+				data-lh-sidebar={open && !narrow ? "open" : "closed"}
+				className={cn("flex h-dvh", mounted && "[&_.sidebar-motion]:transition-[width,margin,opacity]")}
+			>{children}</div>
 		</SidebarContext.Provider>
 	);
 }
@@ -206,7 +212,7 @@ export function SidebarToggle() {
 		<span
 			className={cn(
 				"sidebar-motion lh-no-drag relative flex h-9 shrink-0 overflow-hidden duration-200",
-				open ? "w-0 -mr-3" : "w-9 mr-0 lh-closed-toggle",
+				open ? "w-0 -me-3" : "w-9 me-0 lh-closed-toggle",
 			)}
 		>
 			<Hint label="Open sidebar" action="toggle-sidebar">
@@ -222,7 +228,7 @@ export function SidebarToggle() {
 				{/* Owner, round 6: size-4, SAME as the close glyph — the toggle
 				    must not grow when the sidebar is closed (it did: size-5 here).
 				    The small look is the standard, both directions. */}
-				<PanelLeftOpenIcon className="size-4" />
+				<PanelLeftOpenIcon className="size-4 rtl:-scale-x-100" />
 			</Button>
 			</Hint>
 		</span>
@@ -652,12 +658,12 @@ function SessionsSidebar() {
 			className={cn("sidebar-motion shrink-0 overflow-hidden duration-200", open ? "w-72" : "w-0")}
 			aria-hidden={!open}
 		>
-			<div className="flex h-full w-72 flex-col border-r bg-background">
+			<div className="flex h-full w-72 flex-col border-e bg-background">
 				{/* LH wordmark — the owner's header; close toggle sits at the edge.
 				    Merged chrome (2026-09-17): in Electron this band is the
 				    window's drag surface and starts after the traffic lights
 				    (.lh-lights-gutter); in the browser those classes are inert. */}
-				<div className="lh-drag lh-lights-gutter flex items-center justify-between px-4 py-3">
+				<div className="lh-drag lh-lights-gutter lh-sidebar-head flex items-center justify-between px-4 py-3">
 					{/* The owner's mark (2026-09-17) replaces the "LH" text — still the
 					    home link, still vertically centered by the band's items-center.
 					    The 92px .lh-lights-gutter keeps it clear of the traffic lights
@@ -689,7 +695,7 @@ function SessionsSidebar() {
 							onClick={toggle}
 							className="lh-no-drag"
 						>
-							<PanelLeftCloseIcon className="size-4" />
+							<PanelLeftCloseIcon className="size-4 rtl:-scale-x-100" />
 						</Button>
 					</Hint>
 				</div>

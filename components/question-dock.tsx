@@ -784,6 +784,7 @@ function QuestionDockForm({
 								style={confidenceRailStyle(CONFIDENCE_STOPS[confIdx]!)}
 							/>
 							<input
+								dir="ltr"
 								type="range"
 								min={0}
 								max={100}
