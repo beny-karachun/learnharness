@@ -77,6 +77,7 @@ import { MenuShell } from "@/components/menu-shell.tsx";
 import { DeleteNodeDialog } from "@/components/delete-node-dialog.tsx";
 import { ChainTableOverlay } from "@/components/chain-table.tsx";
 import { Hint } from "@/components/ui/hint";
+import { MathText } from "@/components/math-text";
 import { useT, type MessageKey, type Translate } from "@/components/i18n";
 import {
 	ARROW_LENGTH_LADDER,
@@ -1639,8 +1640,8 @@ export function GraphView({
 					// over home.tsx's drag surface (2026-09-17).
 					className="lh-no-drag absolute z-10 w-80 max-w-[calc(100%-1rem)] rounded-xl border bg-card p-4 text-start shadow-lg"
 				>
-					<div className="text-sm font-medium leading-snug">{selected.node.name}</div>
-					<div className="mt-1 text-xs leading-relaxed text-muted-foreground">{selected.node.statement}</div>
+					<div dir="auto" className="text-sm font-medium leading-snug [text-align:match-parent]"><MathText text={selected.node.name} /></div>
+					<div dir="auto" className="mt-1 text-xs leading-relaxed text-muted-foreground [text-align:match-parent]"><MathText text={selected.node.statement} /></div>
 					{selected.sourceIds.length > 0 ? (
 						<div className="mt-3 flex flex-col gap-1">
 							<div className="text-xs text-muted-foreground">{t("graph.detail.sessions")}</div>

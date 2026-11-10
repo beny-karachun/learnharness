@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/i18n";
+import { MathText } from "@/components/math-text";
 
 /**
  * The graph-context card (owner, 2026-10-04): the session's map pick —
@@ -44,8 +45,8 @@ export function GraphContextCard({ data }: { data: GraphContextData }) {
 				<div data-testid="graph-context-body" className="mt-1 space-y-1 rounded-lg border border-dashed border-border/70 px-4 py-3 text-xs">
 					{propositions.map((p) => (
 						<div key={p.id} data-testid={`graph-context-prop-${p.id}`} className="leading-relaxed">
-							<span className="font-medium text-foreground/80">{p.name}</span>
-							<span className="text-muted-foreground"> — {p.statement}</span>
+							<span className="font-medium text-foreground/80"><MathText text={p.name} /></span>
+							<span className="text-muted-foreground"> — <MathText text={p.statement} /></span>
 						</div>
 					))}
 					{chains.length > 0 && (

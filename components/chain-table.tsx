@@ -76,6 +76,7 @@ import { useServerEvent, useServerResync } from "./server-events";
 import { TopBar } from "@/components/top-bar";
 import { DeleteSourceDialog } from "@/components/delete-source-dialog";
 import { LatexGlyph } from "@/components/latex-glyph";
+import { MathText } from "@/components/math-text";
 import { useT } from "@/components/i18n";
 
 /** The sortable columns (owner ruling: all three — consistency). */
@@ -524,7 +525,7 @@ export function ChainTableBody({
 																	data-testid={`prop-chip-${id}`}
 																	className="rounded border border-border/70 bg-muted/30 px-1.5 py-0.5"
 																>
-																	{nameOf(id)}
+																	<MathText text={nameOf(id)} />
 																</span>
 															</span>
 														);
@@ -561,7 +562,7 @@ export function ChainTableBody({
 																label={t("graph.chainTable.selectNode", { name: node.name })}
 															/> : <span aria-hidden="true" className="size-3.5 shrink-0" />}
 															<span className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
-																{node.statement}
+																<MathText text={node.statement} />
 															</span>
 															<span className="w-14 shrink-0" />
 															<span className="w-20 shrink-0" />
