@@ -34,11 +34,15 @@ interface Transport {
 	provider: string; id: string; envVar: string; api: string;
 	origin: string; path: string; authHeader: string;
 }
+// pi-ai 1.5.0: opencode-go base URLs gained a per-API segment
+// (/inference/go/{anthropic,google/v1beta,openai/v1}); its only
+// google-generative-ai model is now gemini-4-argon (the -contributor id left
+// the catalog).
 const TRANSPORTS: Transport[] = [
-	{ provider: "opencode-go", id: "claude-haiku-5-5", envVar: "OPENCODE_API_KEY", api: "anthropic-messages", origin: "https://opencode.ai", path: "/inference/go/v1/messages", authHeader: "x-api-key" },
-	{ provider: "opencode-go", id: "gemini-4-argon-contributor", envVar: "OPENCODE_API_KEY", api: "google-generative-ai", origin: "https://opencode.ai", path: "/inference/go/v1/models/gemini-4-argon-contributor:streamGenerateContent", authHeader: "x-goog-api-key" },
-	{ provider: "opencode-go", id: "glm-5.3", envVar: "OPENCODE_API_KEY", api: "openai-completions", origin: "https://opencode.ai", path: "/inference/go/v1/chat/completions", authHeader: "authorization" },
-	{ provider: "opencode-go", id: "gpt-6-luna", envVar: "OPENCODE_API_KEY", api: "openai-responses", origin: "https://opencode.ai", path: "/inference/go/v1/responses", authHeader: "authorization" },
+	{ provider: "opencode-go", id: "claude-haiku-5-5", envVar: "OPENCODE_API_KEY", api: "anthropic-messages", origin: "https://opencode.ai", path: "/inference/go/anthropic/v1/messages", authHeader: "x-api-key" },
+	{ provider: "opencode-go", id: "gemini-4-argon", envVar: "OPENCODE_API_KEY", api: "google-generative-ai", origin: "https://opencode.ai", path: "/inference/go/google/v1beta/models/gemini-4-argon:streamGenerateContent", authHeader: "x-goog-api-key" },
+	{ provider: "opencode-go", id: "glm-5.3", envVar: "OPENCODE_API_KEY", api: "openai-completions", origin: "https://opencode.ai", path: "/inference/go/openai/v1/chat/completions", authHeader: "authorization" },
+	{ provider: "opencode-go", id: "gpt-6-luna", envVar: "OPENCODE_API_KEY", api: "openai-responses", origin: "https://opencode.ai", path: "/inference/go/openai/v1/responses", authHeader: "authorization" },
 	{ provider: "openrouter", id: "openai/gpt-4o-mini", envVar: "OPENROUTER_API_KEY", api: "openai-completions", origin: "https://openrouter.ai", path: "/api/v1/chat/completions", authHeader: "authorization" },
 	{ provider: "openai", id: "gpt-4o-mini", envVar: "OPENAI_API_KEY", api: "openai-responses", origin: "https://api.openai.com", path: "/v1/responses", authHeader: "authorization" },
 	{ provider: "anthropic", id: "claude-haiku-4-5", envVar: "ANTHROPIC_API_KEY", api: "anthropic-messages", origin: "https://api.anthropic.com", path: "/v1/messages", authHeader: "x-api-key" },

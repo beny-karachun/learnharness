@@ -83,11 +83,13 @@ describe("native app and conversation identity", { concurrency: false }, () => {
 		}
 	});
 
+	// pi-ai 1.5.0: opencode-go endpoints carry a per-API segment, and the
+	// catalog's google-generative-ai model is gemini-4-argon (-contributor left).
 	for (const [provider, id, endpoint] of [
-		["opencode-go", "claude-haiku-5-5", "/inference/go/v1/messages"],
-		["opencode-go", "gemini-4-argon-contributor", "/inference/go/v1/models/gemini-4-argon-contributor:streamGenerateContent"],
-		["opencode-go", "glm-5.3", "/inference/go/v1/chat/completions"],
-		["opencode-go", "gpt-6-luna", "/inference/go/v1/responses"],
+		["opencode-go", "claude-haiku-5-5", "/inference/go/anthropic/v1/messages"],
+		["opencode-go", "gemini-4-argon", "/inference/go/google/v1beta/models/gemini-4-argon:streamGenerateContent"],
+		["opencode-go", "glm-5.3", "/inference/go/openai/v1/chat/completions"],
+		["opencode-go", "gpt-6-luna", "/inference/go/openai/v1/responses"],
 		["openrouter", "openrouter/free", "/api/v1/chat/completions"],
 	] as const) {
 		it(`complete native ${provider}/${id} foreground serialization carries app identity and exact sessions`, async () => closed(async () => {

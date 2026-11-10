@@ -85,10 +85,12 @@ test("activityFeed: contextLimit is the server's live-catalog join (owner amendm
 
 		const feed = activityFeed();
 		const knownJob = feed.jobs.find((j) => j.id === known.id)!;
-		// pi 1.0.2's catalog: glm-5.3-flash contextWindow 1_048_575 (was
-		// 1_048_576 at 0.87.1 — upstream models.dev refresh).
-		assert.equal(knownJob.contextLimit, 1_048_575, "pi's catalog, joined server-side onto the feed");
-		assert.ok(knownJob.costUsd !== null && Math.abs(knownJob.costUsd - 0.0002) < 1e-12, "Pi's price is projected on the server");
+		// pi 1.5.0's catalog: glm-5.3-flash contextWindow 1_048_576 (was
+		// 1_048_575 from 1.0.2 through 1.4.0 — upstream models.dev refresh).
+		assert.equal(knownJob.contextLimit, 1_048_576, "pi's catalog, joined server-side onto the feed");
+		// pi 1.5.0 glm-5.3-flash price (input 0.0285 / output 0.0923 per M):
+		// 1k × 0.0285 + 100 × 0.0923 = 0.0000285 + 0.00000923 = 0.00003773
+		assert.ok(knownJob.costUsd !== null && Math.abs(knownJob.costUsd - 0.00003773) < 1e-12, "Pi's price is projected on the server");
 		const unknownJob = feed.jobs.find((j) => j.id === unknown.id)!;
 		assert.equal(unknownJob.contextLimit, null, "missing from the live catalog → null, never a guessed window");
 		assert.equal(unknownJob.costUsd, null);
