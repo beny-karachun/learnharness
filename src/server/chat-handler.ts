@@ -166,7 +166,16 @@ function retentionForSlot(slot: ModelSlotName) {
 	return () => stores.settingsStore.readSettings()?.models?.[slot]?.cacheRetention;
 }
 
-setJobRespawn((jobId) => void jobRunner.runJob(jobId));
+// A respawn after a restart can run before anything has loaded the live
+// subscription catalogs (ChatGPT's list is fetched lazily), so a job pinned
+// to a subscription model would fail its engine lookup. Load them first,
+// the same way a turn does; a refresh failure still lets the job try.
+setJobRespawn((jobId) => {
+	void refreshConnectionCatalog()
+		.catch((err) => console.error(`[jobs] catalog refresh before respawn failed:`, err))
+		.then(() => jobRunner.runJob(jobId))
+		.catch((err) => console.error(`[job ${jobId}] respawn failed:`, err));
+});
 // The learner-filesystem policy (file-access wave): every tool registry is
 // built in this composition root, so the seam is installed here — the
 // tools read it fresh per call (allowed folders + the app's private paths).
